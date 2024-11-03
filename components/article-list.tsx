@@ -2,58 +2,59 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import ArticleCard from "./article-card";
 import OnboardingPrompt from "./onboarding-prompt";
+import ArticleListClient from "./article-list-client";
+
+const ARTICLES_PER_PAGE = 10;
 
 async function getArticles() {
   const session = await auth();
 
-  if (!session?.user?.id) {
-    // Return default feeds for non-logged-in users
-    return prisma.article.findMany({
-      take: 20,
-      orderBy: {
-        publishedAt: "desc",
-      },
-      include: {
-        feed: true,
-        votes: true,
-      },
-    });
-  }
-
-  // Get articles from user's feeds with their votes
-  return prisma.article.findMany({
-    where: {
-      feed: {
-        userId: session.user.id,
-      },
-    },
-    take: 20,
-    orderBy: {
-      publishedAt: "desc",
-    },
-    include: {
-      feed: true,
-      votes: {
+  const articles = !session?.user?.id
+    ? await prisma.article.findMany({
+        take: ARTICLES_PER_PAGE,
+        orderBy: {
+          publishedAt: "desc",
+        },
+        include: {
+          feed: true,
+          votes: true,
+        },
+      })
+    : await prisma.article.findMany({
         where: {
-          userId: session.user.id,
+          feed: {
+            userId: session.user.id,
+          },
         },
-        select: {
-          value: true,
+        take: ARTICLES_PER_PAGE,
+        orderBy: {
+          publishedAt: "desc",
         },
-      },
-    },
-  });
+        include: {
+          feed: true,
+          votes: {
+            where: {
+              userId: session.user.id,
+            },
+            select: {
+              value: true,
+            },
+          },
+        },
+      });
+
+  return articles;
 }
 
 export default async function ArticleList() {
   const session = await auth();
-  const articles = await getArticles();
+  const initialArticles = await getArticles();
 
-  if (!session?.user?.id && articles.length === 0) {
+  if (!session?.user?.id && initialArticles.length === 0) {
     return <OnboardingPrompt />;
   }
 
-  if (articles.length === 0) {
+  if (initialArticles.length === 0) {
     return (
       <div className="text-center py-12">
         <h3 className="text-lg font-semibold">No articles yet</h3>
@@ -62,15 +63,5 @@ export default async function ArticleList() {
     );
   }
 
-  return (
-    <div className="space-y-4">
-      {articles.map((article) => (
-        <ArticleCard
-          key={article.id}
-          article={article}
-          userVote={article.votes[0]?.value}
-        />
-      ))}
-    </div>
-  );
+  return <ArticleListClient initialArticles={initialArticles} />;
 }
