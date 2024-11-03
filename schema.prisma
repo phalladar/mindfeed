@@ -1,0 +1,4 @@
+model Vote {
+  // ... existing fields ...
+  @@unique([userId, articleId])
+} 
