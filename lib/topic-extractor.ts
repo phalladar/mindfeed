@@ -9,6 +9,12 @@ export const TOPIC_KEYWORDS: Record<string, string[]> = {
     'crypto', 'cybersecurity', 'data', 'cloud', 'mobile', 'app', 'startup',
     'innovation', 'web', 'code', 'developer', 'computer', 'algorithm', 'machine learning'
   ],
+  'artificial_intelligence': [
+    'ai', 'artificial intelligence', 'machine learning', 'ml', 'deep learning', 
+    'neural network', 'llm', 'large language model', 'transformer', 'gpt',
+    'computer vision', 'nlp', 'natural language', 'inference', 'training',
+    'model', 'dataset', 'cuda', 'gpu', 'tensor', 'nvidia'
+  ],
   'science': [
     'research', 'study', 'scientific', 'discovery', 'experiment', 'physics',
     'biology', 'chemistry', 'astronomy', 'space', 'climate', 'medicine',
@@ -70,18 +76,73 @@ export async function extractTopics(article: Article): Promise<string[]> {
   const words = text.split(/\W+/);
   
   const topicMatches = new Map<string, number>();
+  const minMatchesRequired = 2; // Require at least 2 matches for a topic
+  const maxTopics = 3; // Maximum number of topics per article
   
-  words.forEach(word => {
+  // Title matches are worth more (x2)
+  const titleWords = article.title.toLowerCase().split(/\W+/);
+  
+  // Check for multi-word matches first
+  for (const [topic, keywords] of Object.entries(TOPIC_KEYWORDS)) {
+    keywords.forEach(keyword => {
+      if (keyword.includes(' ')) {
+        // Check title for phrase (worth more)
+        if (article.title.toLowerCase().includes(keyword)) {
+          topicMatches.set(topic, (topicMatches.get(topic) || 0) + 4);
+        }
+        // Check content for phrase
+        if (article.content.toLowerCase().includes(keyword)) {
+          topicMatches.set(topic, (topicMatches.get(topic) || 0) + 2);
+        }
+      }
+    });
+  }
+  
+  // Then check individual words
+  const processWord = (word: string, isTitle: boolean) => {
+    if (word.length < 3) return; // Skip very short words
+    
     for (const [topic, keywords] of Object.entries(TOPIC_KEYWORDS)) {
-      if (keywords.some(keyword => 
-        word.includes(keyword) || keyword.includes(word)
-      )) {
-        topicMatches.set(topic, (topicMatches.get(topic) || 0) + 1);
+      for (const keyword of keywords) {
+        if (keyword.includes(' ')) continue; // Skip phrases
+        
+        // Exact matches are worth more
+        if (word === keyword) {
+          topicMatches.set(
+            topic, 
+            (topicMatches.get(topic) || 0) + (isTitle ? 2 : 1)
+          );
+          break;
+        }
+        
+        // Partial matches only for longer words and must be substantial overlap
+        if (word.length >= 6 && keyword.length >= 6) {
+          if (word.includes(keyword) || keyword.includes(word)) {
+            const overlapRatio = Math.min(word.length, keyword.length) / 
+                               Math.max(word.length, keyword.length);
+            if (overlapRatio > 0.8) { // Must be very similar
+              topicMatches.set(
+                topic,
+                (topicMatches.get(topic) || 0) + (isTitle ? 1 : 0.5)
+              );
+              break;
+            }
+          }
+        }
       }
     }
-  });
+  };
   
+  // Process title words (worth more)
+  titleWords.forEach(word => processWord(word, true));
+  
+  // Process content words
+  words.forEach(word => processWord(word, false));
+  
+  // Return only topics with enough strong matches
   return Array.from(topicMatches.entries())
-    .filter(([_, count]) => count > 0)
+    .filter(([_, count]) => count >= minMatchesRequired)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, maxTopics)
     .map(([topic]) => topic);
 } 

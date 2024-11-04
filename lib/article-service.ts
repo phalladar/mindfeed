@@ -28,15 +28,34 @@ interface FeedPreference {
   score: number;
 }
 
+interface Vote {
+  value: number;
+  article: {
+    id: string;
+    title: string;
+    content: string;
+    feed: {
+      id: string;
+      title: string;
+    };
+    topics: Array<{
+      id: string;
+      name: string;
+    }>;
+  };
+}
+
 // Recommendation tuning parameters
 const RECOMMENDATION_SETTINGS = {
-  TOPIC_WEIGHT: 0.6,        // How much topic matching matters
-  FEED_WEIGHT: 0.2,         // How much feed source matters
-  RECENCY_WEIGHT: 0.2,      // How much article freshness matters
-  MIN_SCORE: 0.2,           // Minimum score to be recommended
-  UPVOTE_STRENGTH: 1,       // How strongly upvotes affect preferences
-  DOWNVOTE_STRENGTH: -2,    // How strongly downvotes affect preferences
-  DAYS_LOOKBACK: 30,        // How far back to look for articles
+  TOPIC_WEIGHT: 0.7,        // Increased from 0.6
+  FEED_WEIGHT: 0.2,         // Kept the same
+  RECENCY_WEIGHT: 0.1,      // Decreased from 0.2 - recency matters less
+  MIN_SCORE: 0.15,          // Adjusted threshold
+  UPVOTE_STRENGTH: 1,       // Kept the same
+  DOWNVOTE_STRENGTH: -2,    // Kept the same
+  DAYS_LOOKBACK: 30,        // Kept the same
+  RECENCY_DECAY: 5,         // New: controls how quickly recency score drops
+  MIN_RELEVANCE: 0.1        // New: minimum topic/feed relevance needed for recency boost
 };
 
 export async function getRecommendedArticles(
@@ -64,37 +83,37 @@ export async function getRecommendedArticles(
           },
         },
       },
-    });
+    }) as Vote[];
 
     console.log('\nUpvoted Articles:');
     userVotes
-      .filter(vote => vote.value === 1)
-      .forEach(vote => {
+      .filter((vote: Vote) => vote.value === 1)
+      .forEach((vote: Vote) => {
         console.log(`- "${vote.article.title}"`);
         console.log(`  Feed: ${vote.article.feed.title}`);
-        console.log(`  Topics: ${vote.article.topics.map(t => t.name).join(', ')}`);
+        console.log(`  Topics: ${vote.article.topics.map((t: Topic) => t.name).join(', ')}`);
       });
 
     console.log('\nDownvoted Articles:');
     userVotes
-      .filter(vote => vote.value === -1)
-      .forEach(vote => {
+      .filter((vote: Vote) => vote.value === -1)
+      .forEach((vote: Vote) => {
         console.log(`- "${vote.article.title}"`);
         console.log(`  Feed: ${vote.article.feed.title}`);
-        console.log(`  Topics: ${vote.article.topics.map(t => t.name).join(', ')}`);
+        console.log(`  Topics: ${vote.article.topics.map((t: Topic) => t.name).join(', ')}`);
       });
 
     // Calculate preferences
     const topicPreferences = new Map<string, number>();
     const feedPreferences = new Map<string, number>();
 
-    userVotes.forEach(vote => {
+    userVotes.forEach((vote: Vote) => {
       const weight = vote.value === 1 ? 
         RECOMMENDATION_SETTINGS.UPVOTE_STRENGTH : 
         RECOMMENDATION_SETTINGS.DOWNVOTE_STRENGTH;
 
       // Learn topic preferences
-      vote.article.topics.forEach(topic => {
+      vote.article.topics.forEach((topic: Topic) => {
         const currentScore = topicPreferences.get(topic.name) || 0;
         topicPreferences.set(topic.name, currentScore + weight);
       });
@@ -115,7 +134,7 @@ export async function getRecommendedArticles(
     Array.from(feedPreferences.entries())
       .sort((a, b) => b[1] - a[1])
       .forEach(([feedId, score]) => {
-        const feed = userVotes.find(v => v.article.feed.id === feedId)?.article.feed;
+        const feed = userVotes.find((v: Vote) => v.article.feed.id === feedId)?.article.feed;
         console.log(`${feed?.title}: ${score}`);
       });
 
@@ -158,10 +177,20 @@ export async function getRecommendedArticles(
       // Calculate feed score (-1 to 1 range)
       const feedScore = Math.tanh(feedPreferences.get(article.feed.id) || 0);
 
+      // Calculate base relevance from topic and feed scores
+      const baseRelevance = (
+        normalizedTopicScore * RECOMMENDATION_SETTINGS.TOPIC_WEIGHT +
+        feedScore * RECOMMENDATION_SETTINGS.FEED_WEIGHT
+      );
+
       // Calculate recency score (0 to 1 range)
       const ageInDays = (Date.now() - new Date(article.publishedAt).getTime()) 
         / (1000 * 60 * 60 * 24);
-      const recencyScore = 1 - (ageInDays / RECOMMENDATION_SETTINGS.DAYS_LOOKBACK);
+      
+      // Only apply recency boost if there's some base relevance
+      const recencyScore = baseRelevance >= RECOMMENDATION_SETTINGS.MIN_RELEVANCE
+        ? Math.exp(-ageInDays / RECOMMENDATION_SETTINGS.RECENCY_DECAY)
+        : 0;
 
       // Combine scores with weights
       const finalScore = (
@@ -189,7 +218,15 @@ export async function getRecommendedArticles(
 
     // Filter by minimum score first
     const recommendedArticles = scoredArticles
-      .filter(item => item.score >= RECOMMENDATION_SETTINGS.MIN_SCORE);
+      .filter(item => {
+        // If we have very few articles that meet the minimum score,
+        // gradually lower the threshold
+        const availableArticles = scoredArticles.filter(a => a.score >= RECOMMENDATION_SETTINGS.MIN_SCORE).length;
+        if (availableArticles < 5) {
+          return item.score >= RECOMMENDATION_SETTINGS.MIN_SCORE / 2;
+        }
+        return item.score >= RECOMMENDATION_SETTINGS.MIN_SCORE;
+      });
 
     // Then sort based on selected order
     const sortedArticles = sortOrder === 'recommended'
