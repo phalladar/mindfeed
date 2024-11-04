@@ -47,6 +47,7 @@ export default function ArticleDialog({
   const handleVote = async (value: number) => {
     if (!session) return;
 
+    const previousVote = currentVote;
     const newVote = currentVote === value ? 0 : value;
     setCurrentVote(newVote);
     onVote?.(newVote);
@@ -72,8 +73,8 @@ export default function ArticleDialog({
         }),
       ]);
     } catch (error) {
-      setCurrentVote(currentVote);
-      onVote?.(currentVote);
+      setCurrentVote(previousVote);
+      onVote?.(previousVote);
       console.error("Failed to vote:", error);
     }
   };
@@ -166,15 +167,17 @@ export default function ArticleDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-w-2xl h-[90vh] flex flex-col p-0">
         <DialogHeader className="p-6 pb-2">
-          <DialogTitle className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="flex flex-col items-center -space-y-3">
+          <DialogTitle className="flex items-start gap-4">
+            <div className="flex items-start gap-4 min-w-0">
+              <div className="flex flex-col items-center -space-y-3 shrink-0">
                 <Button
                   size="icon"
                   variant="ghost"
                   className={cn(
-                    "h-8 w-8 -mt-1",
-                    currentVote === 1 ? "text-green-500" : "text-muted-foreground"
+                    "h-8 w-8 -mt-1 hover:bg-transparent focus-visible:ring-0",
+                    currentVote === 1 
+                      ? "text-green-500 hover:text-green-500" 
+                      : "text-muted-foreground hover:text-muted-foreground"
                   )}
                   onClick={() => handleVote(1)}
                   disabled={!session}
@@ -185,8 +188,10 @@ export default function ArticleDialog({
                   size="icon"
                   variant="ghost"
                   className={cn(
-                    "h-8 w-8",
-                    currentVote === -1 ? "text-red-500" : "text-muted-foreground"
+                    "h-8 w-8 hover:bg-transparent focus-visible:ring-0",
+                    currentVote === -1 
+                      ? "text-red-500 hover:text-red-500" 
+                      : "text-muted-foreground hover:text-muted-foreground"
                   )}
                   onClick={() => handleVote(-1)}
                   disabled={!session}
@@ -194,23 +199,25 @@ export default function ArticleDialog({
                   <ArrowDown className="h-5 w-5 fill-current" />
                 </Button>
               </div>
-              <span className="flex-1">{article.title}</span>
+              <div>
+                {article.title}
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="align-middle inline-block h-8 w-8 relative -left-[-6px] -top-[-6px]" 
+                  asChild
+                >
+                  <a 
+                    href={article.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    title="Open in new tab"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </Button>
+              </div>
             </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-8 w-8" 
-              asChild
-            >
-              <a 
-                href={article.url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                title="Open in new tab"
-              >
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            </Button>
           </DialogTitle>
         </DialogHeader>
         <div 

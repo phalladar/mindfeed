@@ -46,6 +46,7 @@ export default function ArticleCard({ article, userVote = 0 }: ArticleCardProps)
   const handleVote = async (value: number) => {
     if (!session) return;
 
+    const previousVote = currentVote;
     const newVote = currentVote === value ? 0 : value;
     setCurrentVote(newVote);
 
@@ -60,10 +61,10 @@ export default function ArticleCard({ article, userVote = 0 }: ArticleCardProps)
       });
 
       if (!response.ok) {
-        setCurrentVote(currentVote);
+        setCurrentVote(previousVote);
       }
     } catch (error) {
-      setCurrentVote(currentVote);
+      setCurrentVote(previousVote);
       console.error("Failed to vote:", error);
     }
   };
@@ -80,8 +81,10 @@ export default function ArticleCard({ article, userVote = 0 }: ArticleCardProps)
             size="icon"
             variant="ghost"
             className={cn(
-              "h-8 w-8 -mt-1",
-              currentVote === 1 ? "text-green-500" : "text-muted-foreground"
+              "h-8 w-8 -mt-1 hover:bg-transparent focus-visible:ring-0",
+              currentVote === 1 
+                ? "text-green-500 hover:text-green-500" 
+                : "text-muted-foreground hover:text-muted-foreground"
             )}
             onClick={(e) => {
               e.stopPropagation();
@@ -95,8 +98,10 @@ export default function ArticleCard({ article, userVote = 0 }: ArticleCardProps)
             size="icon"
             variant="ghost"
             className={cn(
-              "h-8 w-8",
-              currentVote === -1 ? "text-red-500" : "text-muted-foreground"
+              "h-8 w-8 hover:bg-transparent focus-visible:ring-0",
+              currentVote === -1 
+                ? "text-red-500 hover:text-red-500" 
+                : "text-muted-foreground hover:text-muted-foreground"
             )}
             onClick={(e) => {
               e.stopPropagation();

@@ -35,7 +35,7 @@ const RECOMMENDATION_SETTINGS = {
   RECENCY_WEIGHT: 0.2,      // How much article freshness matters
   MIN_SCORE: 0.2,           // Minimum score to be recommended
   UPVOTE_STRENGTH: 1,       // How strongly upvotes affect preferences
-  DOWNVOTE_STRENGTH: -2,    // How strongly downvotes affect preferences (negative)
+  DOWNVOTE_STRENGTH: -2,    // How strongly downvotes affect preferences
   DAYS_LOOKBACK: 30,        // How far back to look for articles
 };
 
@@ -93,11 +93,13 @@ export async function getRecommendedArticles(
         RECOMMENDATION_SETTINGS.UPVOTE_STRENGTH : 
         RECOMMENDATION_SETTINGS.DOWNVOTE_STRENGTH;
 
+      // Learn topic preferences
       vote.article.topics.forEach(topic => {
         const currentScore = topicPreferences.get(topic.name) || 0;
         topicPreferences.set(topic.name, currentScore + weight);
       });
 
+      // Learn feed preferences
       const currentFeedScore = feedPreferences.get(vote.article.feed.id) || 0;
       feedPreferences.set(vote.article.feed.id, currentFeedScore + weight);
     });
