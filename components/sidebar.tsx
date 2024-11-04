@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
-import { Home, Star, Rss } from "lucide-react";
+import { Home, Star, Rss, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -14,7 +14,7 @@ export default function Sidebar() {
 
   const navigation = [
     { name: "Home", href: "/", icon: Home },
-    { name: "Popular", href: "/popular", icon: Star },
+    { name: "Recommended", href: "/recommended", icon: Sparkles },
     ...(session
       ? [
           { name: "My Feeds", href: "/feeds", icon: Rss },

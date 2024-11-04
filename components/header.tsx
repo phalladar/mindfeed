@@ -15,7 +15,7 @@ export default function Header() {
     <header className="border-b">
       <div className="container mx-auto flex h-16 items-center px-4">
         <Link href="/" className="flex items-center space-x-2">
-          <span className="text-2xl font-bold">RSS Reader</span>
+          <span className="text-2xl font-bold">MindFeed</span>
         </Link>
 
         <div className="ml-auto flex items-center space-x-4">

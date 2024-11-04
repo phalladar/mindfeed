@@ -96,21 +96,34 @@ export default function ArticleListClient({
   }, [inView, cursor, hasMore, isLoading]);
 
   return (
-    <div className="space-y-4">
-      {articles.map((article) => (
-        <ArticleCard
-          key={article.id}
-          article={article}
-          userVote={article.votes[0]?.value}
-        />
-      ))}
+    <div className="space-y-1">
+      <div className="grid gap-2">
+        {articles.map((article) => (
+          <ArticleCard
+            key={article.id}
+            article={article}
+            userVote={article.votes[0]?.value}
+          />
+        ))}
+      </div>
       
-      <div ref={ref} className="h-10 flex items-center justify-center">
+      {/* Loading indicator and end message */}
+      <div 
+        ref={ref} 
+        className={`flex items-center justify-center ${hasMore ? 'h-4' : 'h-auto'}`}
+      >
         {isLoading && hasMore && (
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <div className="flex items-center gap-2 text-muted-foreground py-1">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="text-sm">Loading more articles...</span>
+          </div>
         )}
         {!hasMore && articles.length > 0 && (
-          <p className="text-sm text-muted-foreground">No more articles to load</p>
+          <div className="flex items-center gap-2 py-1 text-muted-foreground">
+            <div className="h-px w-8 bg-border" />
+            <p className="text-sm">End of feed</p>
+            <div className="h-px w-8 bg-border" />
+          </div>
         )}
       </div>
     </div>

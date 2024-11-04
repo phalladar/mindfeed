@@ -54,13 +54,15 @@ export default function AddFeedDialog({
 
       if (!response.ok) throw new Error("Failed to add feed");
 
+      const newFeed = await response.json();
+
       toast({
         title: "Feed added successfully",
         description: "Your new feed has been added to your list.",
       });
 
       setOpen(false);
-      router.refresh();
+      window.location.reload();
     } catch (error) {
       toast({
         title: "Error",

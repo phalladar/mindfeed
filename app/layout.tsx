@@ -10,7 +10,7 @@ import Sidebar from '@/components/sidebar';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'RSS Reader',
+  title: 'MindFeed',
   description: 'A modern RSS reader built with Next.js',
 };
 

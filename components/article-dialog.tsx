@@ -12,6 +12,7 @@ import { ExternalLink, Loader2, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "./ui/button";
 import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
+import { useInView } from "react-intersection-observer";
 
 type ArticleDialogProps = {
   article: any;
@@ -33,6 +34,11 @@ export default function ArticleDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentVote, setCurrentVote] = useState(userVote);
+  const [scrollPercentage, setScrollPercentage] = useState(0);
+  const [readStartTime, setReadStartTime] = useState<number | null>(null);
+  const { ref: contentRef, inView } = useInView({
+    threshold: [0, 0.25, 0.5, 0.75, 1.0],
+  });
 
   useEffect(() => {
     setCurrentVote(userVote);
@@ -46,19 +52,25 @@ export default function ArticleDialog({
     onVote?.(newVote);
 
     try {
-      const response = await fetch("/api/vote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          articleId: article.id,
-          value: newVote,
+      await Promise.all([
+        fetch("/api/vote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            articleId: article.id,
+            value: newVote,
+          }),
         }),
-      });
-
-      if (!response.ok) {
-        setCurrentVote(currentVote);
-        onVote?.(currentVote);
-      }
+        fetch("/api/article-score", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            articleId: article.id,
+            interaction: "vote",
+            value: newVote,
+          }),
+        }),
+      ]);
     } catch (error) {
       setCurrentVote(currentVote);
       onVote?.(currentVote);
@@ -89,6 +101,65 @@ export default function ArticleDialog({
 
     fetchContent();
   }, [article.url]);
+
+  // Track article view
+  useEffect(() => {
+    if (session?.user) {
+      fetch("/api/article-score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          articleId: article.id,
+          interaction: "view",
+          value: 1,
+        }),
+      });
+    }
+  }, [article.id, session?.user]);
+
+  // Track reading time
+  useEffect(() => {
+    if (inView && !readStartTime) {
+      setReadStartTime(Date.now());
+    } else if (!inView && readStartTime && session?.user) {
+      const duration = Math.floor((Date.now() - readStartTime) / 1000);
+      fetch("/api/article-score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          articleId: article.id,
+          interaction: "readTime",
+          value: duration,
+        }),
+      });
+      setReadStartTime(null);
+    }
+  }, [inView, readStartTime, article.id, session?.user]);
+
+  // Track scroll percentage
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const element = e.currentTarget;
+    const newScrollPercentage = Math.round(
+      (element.scrollTop / (element.scrollHeight - element.clientHeight)) * 100
+    );
+    
+    if (
+      newScrollPercentage > scrollPercentage &&
+      session?.user &&
+      newScrollPercentage % 25 === 0 // Only track at 25% intervals
+    ) {
+      setScrollPercentage(newScrollPercentage);
+      fetch("/api/article-score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          articleId: article.id,
+          interaction: "scroll",
+          value: 25, // Track each 25% increment
+        }),
+      });
+    }
+  };
 
   return (
     <Dialog onOpenChange={onOpenChange}>
@@ -142,8 +213,14 @@ export default function ArticleDialog({
             </Button>
           </DialogTitle>
         </DialogHeader>
-        <div className="flex-1 overflow-y-auto px-6 pb-6">
-          <div className="prose prose-sm dark:prose-invert max-w-none">
+        <div 
+          className="flex-1 overflow-y-auto px-6 pb-6"
+          onScroll={handleScroll}
+        >
+          <div 
+            ref={contentRef}
+            className="prose prose-sm dark:prose-invert max-w-none"
+          >
             {isLoading && (
               <div className="flex justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin" />

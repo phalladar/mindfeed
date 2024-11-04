@@ -9,59 +9,55 @@ const ARTICLES_PER_PAGE = 10;
 async function getArticles() {
   const session = await auth();
 
-  const articles = !session?.user?.id
-    ? await prisma.article.findMany({
-        take: ARTICLES_PER_PAGE,
-        orderBy: {
-          publishedAt: "desc",
-        },
-        include: {
-          feed: true,
-          votes: true,
-        },
-      })
-    : await prisma.article.findMany({
-        where: {
-          feed: {
-            userId: session.user.id,
-          },
-        },
-        take: ARTICLES_PER_PAGE,
-        orderBy: {
-          publishedAt: "desc",
-        },
-        include: {
-          feed: true,
-          votes: {
-            where: {
-              userId: session.user.id,
-            },
-            select: {
-              value: true,
-            },
-          },
-        },
-      });
+  if (!session?.user?.id) {
+    return [];
+  }
 
-  return articles;
+  return prisma.article.findMany({
+    where: {
+      feed: {
+        userId: session.user.id,
+      },
+    },
+    take: ARTICLES_PER_PAGE,
+    orderBy: {
+      publishedAt: "desc",
+    },
+    include: {
+      feed: true,
+      votes: {
+        where: {
+          userId: session.user.id,
+        },
+        select: {
+          value: true,
+        },
+      },
+    },
+  });
 }
 
 export default async function ArticleList() {
   const session = await auth();
-  const initialArticles = await getArticles();
 
-  if (!session?.user?.id && initialArticles.length === 0) {
+  if (!session?.user) {
     return <OnboardingPrompt />;
   }
 
+  const initialArticles = await getArticles();
+
   if (initialArticles.length === 0) {
     return (
-      <div className="text-center py-12">
+      <div className="text-center py-6">
         <h3 className="text-lg font-semibold">No articles yet</h3>
         <p className="text-muted-foreground">Add some feeds to get started!</p>
       </div>
     );
   }
 
-  return <ArticleListClient initialArticles={initialArticles} />;
+  return (
+    <div className="py-1">
+      <ArticleListClient initialArticles={initialArticles} />
+    </div>
+  );
 }

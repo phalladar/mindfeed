@@ -4,10 +4,18 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: { unoptimized: true },
-  experimental: {
-    outputFileTracingIncludes: {
-      '/**/*': ['./prisma/**/*']
+  outputFileTracingIncludes: {
+    '/**/*': ['./prisma/**/*']
+  },
+  webpack: (config, { dev, isServer }) => {
+    if (dev && !isServer) {
+      config.devtool = false;
     }
+    return config;
+  },
+  onDemandEntries: {
+    maxInactiveAge: 25 * 1000,
+    pagesBufferLength: 2,
   }
 };
 

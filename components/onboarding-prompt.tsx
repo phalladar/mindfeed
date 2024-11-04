@@ -14,7 +14,7 @@ export default function OnboardingPrompt() {
   return (
     <Card className="mx-auto max-w-md">
       <CardHeader>
-        <CardTitle>Welcome to RSS Reader</CardTitle>
+        <CardTitle>Welcome to MindFeed</CardTitle>
         <CardDescription>
           Stay up to date with your favorite content in one place
         </CardDescription>

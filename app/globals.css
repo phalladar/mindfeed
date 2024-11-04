@@ -60,6 +60,44 @@
 
 @layer components {
   .post-excerpt {
-    @apply mt-2 text-muted-foreground;
+    @apply mt-2 text-muted-foreground text-sm leading-relaxed;
+  }
+  
+  /* Article card styling */
+  .article-card {
+    @apply p-6 hover:bg-muted/50 transition-colors border-b last:border-b-0;
+  }
+  
+  .article-card-header {
+    @apply space-y-1 mb-2;
+  }
+  
+  .article-title {
+    @apply text-lg font-semibold leading-tight hover:text-primary/80 transition-colors;
+  }
+  
+  .article-meta {
+    @apply flex items-center gap-2 text-sm text-muted-foreground;
+  }
+  
+  .article-source {
+    @apply font-medium text-primary/80;
+  }
+  
+  .article-date {
+    @apply text-muted-foreground;
+  }
+  
+  .article-content {
+    @apply text-sm text-muted-foreground leading-relaxed;
+  }
+  
+  /* Vote buttons styling */
+  .vote-buttons {
+    @apply flex items-center gap-1 text-muted-foreground;
+  }
+  
+  .vote-button {
+    @apply hover:text-primary transition-colors;
   }
 }
