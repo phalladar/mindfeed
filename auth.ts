@@ -3,12 +3,7 @@ import Google from 'next-auth/providers/google';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from '@/lib/prisma';
 
-export const {
-  handlers: { GET, POST },
-  auth,
-  signIn,
-  signOut,
-} = NextAuth({
+export const authConfig = {
   adapter: PrismaAdapter(prisma),
   providers: [
     Google({
@@ -24,20 +19,14 @@ export const {
     }),
   ],
   session: {
-    strategy: "jwt"
+    strategy: "database"
   },
   callbacks: {
-    async session({ session, token }) {
-      if (session.user && token.sub) {
-        session.user.id = token.sub;
+    async session({ session, user }) {
+      if (session.user) {
+        session.user.id = user.id;
       }
       return session;
-    },
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-      }
-      return token;
     }
   },
   pages: {
@@ -45,4 +34,7 @@ export const {
     error: '/auth/error',
   },
   debug: process.env.NODE_ENV === 'development',
-});
+};
+
+export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
+export const { GET, POST } = handlers;

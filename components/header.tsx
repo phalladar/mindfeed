@@ -9,7 +9,23 @@ import Link from "next/link";
 import { ThemeToggle } from "./theme-toggle";
 
 export default function Header() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+
+  const handleSignIn = async () => {
+    try {
+      await signIn("google", { callbackUrl: "/" });
+    } catch (error) {
+      console.error("Sign in error:", error);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut({ callbackUrl: "/" });
+    } catch (error) {
+      console.error("Sign out error:", error);
+    }
+  };
 
   return (
     <header className="border-b">
@@ -20,7 +36,11 @@ export default function Header() {
 
         <div className="ml-auto flex items-center space-x-4">
           <ThemeToggle />
-          {session ? (
+          {status === "loading" ? (
+            <Button variant="ghost" disabled>
+              Loading...
+            </Button>
+          ) : session ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -31,14 +51,14 @@ export default function Header() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuItem onClick={() => signOut()}>
+                <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button onClick={() => signIn("google")}>Sign in</Button>
+            <Button onClick={handleSignIn}>Sign in</Button>
           )}
         </div>
       </div>
