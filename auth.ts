@@ -12,6 +12,12 @@ async function getUser(email: string): Promise<User | null> {
       where: {
         email: email,
       },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        password: true
+      }
     })
     return user
   } catch (error) {
@@ -37,8 +43,8 @@ export const { auth, signIn, signOut } = NextAuth({
         const { email, password } = parsedCredentials.data
         const user = await getUser(email)
         
-        if (!user) {
-          console.error("User not found")
+        if (!user || !user.password) {
+          console.error("User not found or password not set")
           return null
         }
         
