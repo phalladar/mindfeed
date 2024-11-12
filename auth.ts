@@ -1,7 +1,7 @@
-import { getServerSession as getServerSessionHelper } from 'next-auth/next';
+import { getServerSession } from '@auth/core';
 import { authConfig } from './auth.config';
 
 export async function auth() {
-  const session = await getServerSessionHelper(authConfig);
+  const session = await getServerSession(authConfig);
   return session;
 }
