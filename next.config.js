@@ -10,9 +10,6 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  outputFileTracingIncludes: {
-    '*': ['./prisma*']
-  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -40,6 +37,11 @@ const nextConfig = {
   experimental: {
     serverActions: true,
   },
+  // Add this section
+  reactStrictMode: true,
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  // Skip static generation for the error page
+  excludeStaticPages: ['/auth/error']
 };
 
 module.exports = nextConfig;
