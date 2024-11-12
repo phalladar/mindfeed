@@ -23,29 +23,22 @@ export const {
       }
     }),
   ],
+  session: {
+    strategy: "jwt"
+  },
   callbacks: {
-    async session({ session, user }) {
-      try {
-        if (session.user) {
-          session.user.id = user.id;
-        }
-        return session;
-      } catch (error) {
-        console.error('Session callback error:', error);
-        return session;
+    async session({ session, token }) {
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
       }
+      return session;
     },
-    async signIn({ account, profile }) {
-      try {
-        if (!profile?.email) {
-          throw new Error('No email provided by Google');
-        }
-        return true;
-      } catch (error) {
-        console.error('SignIn callback error:', error);
-        return false;
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
       }
-    },
+      return token;
+    }
   },
   pages: {
     signIn: '/login',

@@ -33,6 +33,9 @@ const nextConfig = {
     pagesBufferLength: 2,
   },
   output: 'standalone',
+  experimental: {
+    serverActions: true,
+  },
 };
 
 module.exports = nextConfig;
