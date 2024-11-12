@@ -16,10 +16,12 @@ const handler = NextAuth({
             .safeParse(credentials)
 
           if (!parsedCredentials.success) {
+            console.error('Validation error:', parsedCredentials.error)
             return null
           }
 
           const { email, password } = parsedCredentials.data
+          
           const user = await prisma.user.findUnique({
             where: { email },
             select: {
@@ -30,10 +32,17 @@ const handler = NextAuth({
             },
           })
 
-          if (!user?.password) return null
+          if (!user || !user.password) {
+            console.error('User not found or no password set for:', email)
+            return null
+          }
 
           const passwordsMatch = await bcrypt.compare(password, user.password)
-          if (!passwordsMatch) return null
+          
+          if (!passwordsMatch) {
+            console.error('Invalid password for user:', email)
+            return null
+          }
 
           return {
             id: user.id,
@@ -41,12 +50,26 @@ const handler = NextAuth({
             name: user.name,
           }
         } catch (error) {
-          console.error('Auth error:', error)
+          console.error('Authentication error:', error)
           return null
         }
       },
     }),
   ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string
+      }
+      return session
+    }
+  }
 })
 
 export { handler as GET, handler as POST } 
