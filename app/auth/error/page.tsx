@@ -3,10 +3,11 @@
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
 
-export default function AuthErrorPage() {
+function ErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
   const errorDescription = searchParams.get("error_description");
@@ -35,23 +36,37 @@ export default function AuthErrorPage() {
   };
 
   return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <AlertCircle className="h-5 w-5 text-destructive" />
+          Authentication Error
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          {getErrorMessage(error)}
+        </p>
+        <Button asChild className="w-full">
+          <Link href="/login">Try Again</Link>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function AuthErrorPage() {
+  return (
     <div className="container mx-auto max-w-md py-12">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-destructive" />
-            Authentication Error
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            {getErrorMessage(error)}
-          </p>
-          <Button asChild className="w-full">
-            <Link href="/login">Try Again</Link>
-          </Button>
-        </CardContent>
-      </Card>
+      <Suspense 
+        fallback={
+          <div className="flex items-center justify-center">
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
+        }
+      >
+        <ErrorContent />
+      </Suspense>
     </div>
   );
 } 
