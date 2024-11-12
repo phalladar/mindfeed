@@ -14,20 +14,37 @@ export const {
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: "select_account",
+          access_type: "offline",
+          response_type: "code"
+        }
+      }
     }),
   ],
   callbacks: {
     async session({ session, user }) {
-      if (session.user) {
-        session.user.id = user.id;
+      try {
+        if (session.user) {
+          session.user.id = user.id;
+        }
+        return session;
+      } catch (error) {
+        console.error('Session callback error:', error);
+        return session;
       }
-      return session;
     },
     async signIn({ account, profile }) {
-      if (account?.provider === "google") {
+      try {
+        if (!profile?.email) {
+          throw new Error('No email provided by Google');
+        }
         return true;
+      } catch (error) {
+        console.error('SignIn callback error:', error);
+        return false;
       }
-      return false;
     },
   },
   pages: {
