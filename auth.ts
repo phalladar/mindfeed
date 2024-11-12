@@ -2,9 +2,13 @@ import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from '@/lib/prisma';
-import { NextAuthConfig } from 'next-auth';
 
-export const authConfig: NextAuthConfig = {
+export const {
+  handlers: { GET, POST },
+  auth,
+  signIn,
+  signOut,
+} = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
     Google({
@@ -19,22 +23,29 @@ export const authConfig: NextAuthConfig = {
       }
     }),
   ],
-  session: {
-    strategy: "jwt" as const
-  },
   callbacks: {
-    async session({ session, token }) {
-      if (session.user && token.sub) {
-        session.user.id = token.sub;
+    async session({ session, user }) {
+      try {
+        if (session.user) {
+          session.user.id = user.id;
+        }
+        return session;
+      } catch (error) {
+        console.error('Session callback error:', error);
+        return session;
       }
-      return session;
     },
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
+    async signIn({ account, profile }) {
+      try {
+        if (!profile?.email) {
+          throw new Error('No email provided by Google');
+        }
+        return true;
+      } catch (error) {
+        console.error('SignIn callback error:', error);
+        return false;
       }
-      return token;
-    }
+    },
   },
   pages: {
     signIn: '/login',
@@ -42,7 +53,4 @@ export const authConfig: NextAuthConfig = {
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === 'development',
-};
-
-export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
-export const { GET, POST } = handlers;
+});
