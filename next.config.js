@@ -20,7 +20,6 @@ const nextConfig = {
         'pg-native': false,
       };
     }
-    // Optimize build performance
     config.cache = {
       type: 'filesystem',
       buildDependencies: {
@@ -29,12 +28,10 @@ const nextConfig = {
     };
     return config;
   },
-  // Reduce memory usage during build
   onDemandEntries: {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 2,
   },
-  // Add output configuration
   output: 'standalone',
 };
 

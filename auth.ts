@@ -17,14 +17,22 @@ export const {
     }),
   ],
   callbacks: {
-    session({ session, user }) {
+    async session({ session, user }) {
       if (session.user) {
         session.user.id = user.id;
       }
       return session;
     },
+    async signIn({ account, profile }) {
+      if (account?.provider === "google") {
+        return true;
+      }
+      return false;
+    },
   },
   pages: {
     signIn: '/login',
+    error: '/auth/error',
   },
+  debug: process.env.NODE_ENV === 'development',
 });
