@@ -1,34 +1,23 @@
-import { NextAuthConfig } from 'next-auth';
-import Google from 'next-auth/providers/google';
-import { PrismaAdapter } from '@auth/prisma-adapter';
-import { prisma } from '@/lib/prisma';
+import type { NextAuthConfig } from "next-auth"
 
-export const authConfig: NextAuthConfig = {
-  adapter: PrismaAdapter(prisma),
-  providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          prompt: "select_account",
-          access_type: "offline",
-          response_type: "code"
-        }
-      }
-    }),
-  ],
-  callbacks: {
-    async session({ session, user }) {
-      if (session.user) {
-        session.user.id = user.id;
-      }
-      return session;
-    },
-  },
+export const authConfig = {
   pages: {
     signIn: '/login',
     error: '/auth/error',
   },
-  secret: process.env.NEXTAUTH_SECRET,
-}; 
+  callbacks: {
+    authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth?.user
+      const isOnDashboard = nextUrl.pathname.startsWith('/dashboard')
+      
+      if (isOnDashboard) {
+        if (isLoggedIn) return true
+        return false
+      } else if (isLoggedIn) {
+        return true
+      }
+      return true
+    },
+  },
+  providers: [], // configured in route handler
+} satisfies NextAuthConfig 
