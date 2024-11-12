@@ -1,25 +1,23 @@
-"use client";
+'use client';
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function ErrorPage() {
-  const router = useRouter()
-
-  useEffect(() => {
-    console.error("Auth error occurred")
-  }, [])
-
+  const searchParams = useSearchParams();
+  const error = searchParams.get('error');
+  
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-2">
-      <h1 className="text-4xl font-bold">Authentication Error</h1>
-      <p className="mt-4">An error occurred during authentication.</p>
-      <button
-        className="mt-4 px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
-        onClick={() => router.push('/')}
-      >
-        Return Home
-      </button>
-    </div>
-  )
-} 
+    <Card className="mx-auto max-w-md mt-8">
+      <CardHeader>
+        <CardTitle>Authentication Error</CardTitle>
+        <CardDescription>An error occurred during authentication.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="text-sm text-muted-foreground">
+          Error details: {error}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
