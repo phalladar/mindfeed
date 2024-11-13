@@ -29,12 +29,27 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <div className="min-h-screen bg-background">
+            <div className="min-h-screen flex flex-col bg-background">
               <Header />
-              <div className="container mx-auto flex gap-6 px-4 py-6">
+              <div className="container mx-auto flex gap-6 px-4 py-6 flex-1">
                 <Sidebar />
                 <main className="flex-1">{children}</main>
               </div>
+              <footer className="border-t py-4 text-center text-sm text-muted-foreground">
+                <div className="container mx-auto">
+                  <p>
+                    Copyright © MindFeed - 2024 |{' '}
+                    <a 
+                      href="https://auriemmai.com/privacy" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="hover:underline"
+                    >
+                      Privacy Policy
+                    </a>
+                  </p>
+                </div>
+              </footer>
             </div>
             <Toaster />
           </ThemeProvider>
