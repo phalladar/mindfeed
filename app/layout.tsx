@@ -31,7 +31,7 @@ export default function RootLayout({
           >
             <div className="min-h-screen flex flex-col bg-background">
               <Header />
-              <div className="container mx-auto flex gap-6 px-4 py-6 flex-1">
+              <div className="container mx-auto flex gap-6 px-4 flex-1 pt-4">
                 <Sidebar />
                 <main className="flex-1">{children}</main>
               </div>

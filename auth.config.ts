@@ -1,39 +1,32 @@
-import type { NextAuthConfig } from 'next-auth';
-import Google from 'next-auth/providers/google';
+import NextAuth from "next-auth"
+import { PrismaAdapter } from "@auth/prisma-adapter"
+import Google from "next-auth/providers/google"
+import { prisma } from "@/lib/prisma"
 
 export const authConfig = {
+  adapter: PrismaAdapter(prisma),
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          prompt: "consent",
-          access_type: "offline",
-          response_type: "code"
-        }
-      }
-    })
+    }),
   ],
+  callbacks: {
+    async session({ session, user }) {
+      if (session.user) {
+        session.user.id = user.id;
+      }
+      return session;
+    },
+  },
   pages: {
     signIn: '/login',
-    error: '/auth/error',
   },
-  callbacks: {
-    authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user
-      const isAuthPage = nextUrl.pathname.startsWith('/login')
-      const isApiAuthRoute = nextUrl.pathname.startsWith('/api/auth')
+};
 
-      // Allow access to auth API routes
-      if (isApiAuthRoute) return true
-
-      // Redirect logged in users away from auth pages
-      if (isAuthPage && isLoggedIn) {
-        return Response.redirect(new URL('/', nextUrl))
-      }
-
-      return !!isLoggedIn
-    }
-  }
-} satisfies NextAuthConfig;
+export const {
+  handlers: { GET, POST },
+  auth,
+  signIn,
+  signOut,
+} = NextAuth(authConfig); 
