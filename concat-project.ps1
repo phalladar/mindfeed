@@ -38,6 +38,9 @@ function Get-GitIgnorePatterns {
         "\.git/.*",
         "\.next/.*",
         "node_modules/.*",
+        "components/.*",
+        ".*prisma.*",
+        "package-lock\.json",
         [regex]::Escape($OutputFile)
     )
     
