@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { Suspense } from "react";
 import ArticleList from "@/components/article-list";
 import OnboardingPrompt from "@/components/onboarding-prompt";

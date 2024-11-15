@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 const ARTICLES_PER_PAGE = 10;
@@ -61,4 +61,4 @@ export async function GET(request: Request) {
     console.error("Failed to fetch articles:", error);
     return new NextResponse("Failed to fetch articles", { status: 500 });
   }
-} 
+}

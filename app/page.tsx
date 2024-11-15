@@ -4,7 +4,7 @@ import ArticleList from '@/components/article-list';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import AddFeedDialog from '@/components/add-feed-dialog';
-import { auth } from '@/auth';
+import { auth } from "@/lib/auth";
 import LandingPage from '@/components/landing-page';
 
 export default async function Home() {

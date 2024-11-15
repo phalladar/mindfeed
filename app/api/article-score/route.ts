@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 // Scoring weights
@@ -12,16 +12,14 @@ const WEIGHTS = {
 
 export async function POST(req: Request) {
   const session = await auth();
-
   if (!session?.user) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
   try {
     const { articleId, interaction, value } = await req.json();
-    
     let scoreIncrement = 0;
-    
+
     switch (interaction) {
       case 'vote':
         scoreIncrement = WEIGHTS.VOTE * value; // value: 1 or -1
@@ -62,4 +60,4 @@ export async function POST(req: Request) {
     console.error("Failed to update article score:", error);
     return new NextResponse("Failed to update article score", { status: 500 });
   }
-} 
+}
