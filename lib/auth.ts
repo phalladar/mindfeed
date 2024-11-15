@@ -9,6 +9,7 @@ export const {
   signIn,
   signOut
 } = NextAuth({
+  adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -22,7 +23,6 @@ export const {
       }
     })
   ],
-  adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
