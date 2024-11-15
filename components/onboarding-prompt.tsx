@@ -24,9 +24,12 @@ export default function OnboardingPrompt() {
           Sign in to create your personalized feed and start following your
           favorite websites and blogs.
         </p>
-        <Button onClick={() => signIn("google")} className="w-full">
-          Sign in with Google
-        </Button>
+        <Button
+        onClick={() => signIn('google', { callbackUrl: '/' })}
+        variant="default"
+      >
+        Sign in
+      </Button>
       </CardContent>
     </Card>
   );
