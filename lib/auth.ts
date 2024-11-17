@@ -30,6 +30,7 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
+  runtime: "node",
 };
 
 export default NextAuth(authOptions);

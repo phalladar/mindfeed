@@ -34,14 +34,8 @@ const nextConfig = {
     pagesBufferLength: 2,
   },
   output: 'standalone',
-  experimental: {
-    serverActions: true,
-  },
-  // Add this section
   reactStrictMode: true,
   pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
-  // Skip static generation for the error page
-  excludeStaticPages: ['/auth/error']
-};
+}
 
 module.exports = nextConfig;
