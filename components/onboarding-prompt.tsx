@@ -9,8 +9,12 @@ import {
   CardTitle,
 } from "./ui/card";
 import { signIn } from "next-auth/react";
+import { useSearchParams } from 'next/navigation';
 
 export default function OnboardingPrompt() {
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
+
   return (
     <Card className="mx-auto max-w-md">
       <CardHeader>
@@ -25,11 +29,11 @@ export default function OnboardingPrompt() {
           favorite websites and blogs.
         </p>
         <Button
-        onClick={() => signIn('google', { callbackUrl: '/' })}
-        variant="default"
-      >
-        Sign in
-      </Button>
+          onClick={() => signIn('google', { callbackUrl })}
+          variant="default"
+        >
+          Sign in
+        </Button>
       </CardContent>
     </Card>
   );
