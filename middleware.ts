@@ -3,10 +3,7 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 export async function middleware(request: NextRequest) {
-  const token = await getToken({
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET,
-  });
+  const token = await getToken({ req: request });
   
   const secureRoutes = [
     '/feeds',
@@ -24,10 +21,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (token && isSecureRoute) {
-    return NextResponse.next();
-  }
-
   return NextResponse.next();
 }
 
@@ -36,5 +29,6 @@ export const config = {
     '/feeds/:path*',
     '/recommended/:path*',
     '/popular/:path*',
+    '/((?!api/auth|_next/static|_next/image|favicon.ico|public|login|$).*)',
   ],
 };

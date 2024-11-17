@@ -11,6 +11,7 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
+  useSecureCookies: process.env.NEXTAUTH_URL?.startsWith('https://') ?? false,
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: "/login",
@@ -23,16 +24,7 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
-    async jwt({ token, user, account }) {
-      if (user) {
-        token.id = user.id;
-      }
-      return token;
-    }
   },
-  session: {
-    strategy: "jwt"
-  }
 };
 
 // Export the auth function that uses getServerSession
