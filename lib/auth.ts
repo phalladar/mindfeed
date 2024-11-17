@@ -7,7 +7,7 @@ export const {
   handlers: { GET, POST },
   auth,
   signIn,
-  signOut
+  signOut,
 } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
@@ -18,15 +18,15 @@ export const {
         params: {
           prompt: "consent",
           access_type: "offline",
-          response_type: "code"
-        }
-      }
-    })
+          response_type: "code",
+        },
+      },
+    }),
   ],
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
-    error: "/auth/error"
+    error: "/auth/error",
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -40,6 +40,6 @@ export const {
         session.user.id = token.id as string;
       }
       return session;
-    }
-  }
+    },
+  },
 });
