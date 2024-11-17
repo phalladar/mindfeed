@@ -23,7 +23,16 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
+    async jwt({ token, user, account }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    }
   },
+  session: {
+    strategy: "jwt"
+  }
 };
 
 // Export the auth function that uses getServerSession

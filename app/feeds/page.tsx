@@ -1,17 +1,13 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import FeedList from "@/components/feed-list";
+import OnboardingPrompt from "@/components/onboarding-prompt";
 
 export default async function FeedsPage() {
   const session = await auth();
 
   if (!session?.user) {
-    return (
-      <div className="text-center py-12">
-        <h3 className="text-lg font-semibold">Not authorized</h3>
-        <p className="text-muted-foreground">Please sign in to view your feeds.</p>
-      </div>
-    );
+    return <OnboardingPrompt />;
   }
 
   const feeds = await prisma.feed.findMany({

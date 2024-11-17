@@ -24,6 +24,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  if (token && isSecureRoute) {
+    return NextResponse.next();
+  }
+
   return NextResponse.next();
 }
 
@@ -32,6 +36,5 @@ export const config = {
     '/feeds/:path*',
     '/recommended/:path*',
     '/popular/:path*',
-    '/((?!api/auth|_next/static|_next/image|favicon.ico|public|login|$).*)',
   ],
 };
