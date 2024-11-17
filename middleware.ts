@@ -3,8 +3,11 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request });
-  
+  const token = await getToken({
+    req: request,
+    secureCookie: process.env.NODE_ENV === "production",
+  });
+
   const secureRoutes = [
     '/feeds',
     '/recommended',
@@ -20,7 +23,6 @@ export async function middleware(request: NextRequest) {
     loginUrl.searchParams.set('callbackUrl', request.url);
     return NextResponse.redirect(loginUrl);
   }
-
   return NextResponse.next();
 }
 
@@ -29,6 +31,7 @@ export const config = {
     '/feeds/:path*',
     '/recommended/:path*',
     '/popular/:path*',
-    '/((?!api/auth|_next/static|_next/image|favicon.ico|public|login|$).*)',
+    // Exclude public routes
+    '/((?!api/auth|_next/static|_next/image|favicon.ico|public|login|signup|$).*)',
   ],
 };
