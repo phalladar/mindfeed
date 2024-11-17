@@ -17,23 +17,16 @@ export const authOptions: NextAuthOptions = {
     error: "/auth/error",
   },
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-      }
-      return token;
-    },
-    async session({ session, token }) {
+    async session({ session, user }) {
       if (session.user) {
-        session.user.id = token.id as string;
+        session.user.id = user.id;
       }
       return session;
     },
   },
-}
+};
 
 // Export the auth function that uses getServerSession
 export const auth = () => getServerSession(authOptions);
 
-// Export the default NextAuth function
 export default NextAuth(authOptions);
