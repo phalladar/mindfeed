@@ -1,9 +1,13 @@
-import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 
 export async function middleware(request: NextRequest) {
-  const session = await auth();
+  // Instead of using auth(), we'll use getToken()
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
   
   // Add your secure routes here
   const secureRoutes = [
@@ -16,7 +20,7 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith(route)
   );
 
-  if (isSecureRoute && !session) {
+  if (isSecureRoute && !token) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
