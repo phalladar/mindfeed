@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { Button } from "./ui/button";
 import {
   Card,
@@ -11,10 +12,21 @@ import {
 import { signIn } from "next-auth/react";
 import { useSearchParams } from 'next/navigation';
 
-export default function OnboardingPrompt() {
+function SignInButton() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/';
 
+  return (
+    <Button
+      onClick={() => signIn('google', { callbackUrl })}
+      variant="default"
+    >
+      Sign in
+    </Button>
+  );
+}
+
+export default function OnboardingPrompt() {
   return (
     <Card className="mx-auto max-w-md">
       <CardHeader>
@@ -28,12 +40,9 @@ export default function OnboardingPrompt() {
           Sign in to create your personalized feed and start following your
           favorite websites and blogs.
         </p>
-        <Button
-          onClick={() => signIn('google', { callbackUrl })}
-          variant="default"
-        >
-          Sign in
-        </Button>
+        <Suspense fallback={<Button variant="default">Loading...</Button>}>
+          <SignInButton />
+        </Suspense>
       </CardContent>
     </Card>
   );
