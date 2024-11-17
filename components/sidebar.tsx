@@ -9,17 +9,15 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 export default function Sidebar() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const pathname = usePathname();
 
   const navigation = [
     { name: "Home", href: "/", icon: Home },
-    { name: "Recommended", href: "/recommended", icon: Sparkles },
-    ...(session
-      ? [
-          { name: "My Feeds", href: "/feeds", icon: Rss },
-        ]
-      : []),
+    ...(status === "authenticated" ? [
+      { name: "Recommended", href: "/recommended", icon: Sparkles },
+      { name: "My Feeds", href: "/feeds", icon: Rss },
+    ] : []),
   ];
 
   return (
